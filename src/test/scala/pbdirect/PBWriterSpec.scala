@@ -2,7 +2,7 @@ package pbdirect
 
 import cats.instances.option._
 import cats.instances.list._
-import org.scalatest.{ Matchers, WordSpecLike }
+import org.scalatest.{Matchers, WordSpecLike}
 
 class PBWriterSpec extends WordSpecLike with Matchers {
   "PBWriter" should {
@@ -94,6 +94,12 @@ class PBWriterSpec extends WordSpecLike with Matchers {
       case class OuterMessage(text: Option[String], inner: Option[InnerMessage])
       val message = OuterMessage(Some("Hello"), Some(InnerMessage(Some(11))))
       message.toPB shouldBe Array[Byte](10, 5, 72, 101, 108, 108, 111, 18, 2, 8, 11)
+    }
+    "write a nested empty message to Protobuf" in {
+      case class InnerMessage(value: Int)
+      case class OuterMessage(text: Option[String], inner: Option[InnerMessage])
+      val message = OuterMessage(Some("Hello"), None)
+      message.toPB shouldBe Array[Byte](10, 5, 72, 101, 108, 108, 111)
     }
     "write a sealed trait to Protobuf" in {
       sealed trait Message
