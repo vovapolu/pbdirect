@@ -63,18 +63,18 @@ trait LowPriorityPBWriterImplicits {
   }
   implicit def cconsWriter[H, T <: Coproduct](
       implicit head: PBWriter[H],
-      tail: PBWriter[T]): PBWriter[H :+: T] =
+      tail: Lazy[PBWriter[T]]): PBWriter[H :+: T] =
     instance { (index: Int, value: H :+: T, out: CodedOutputStream) =>
       value match {
         case Inl(h) => head.writeTo(index, h, out)
-        case Inr(t) => tail.writeTo(index, t, out)
+        case Inr(t) => tail.value.writeTo(index, t, out)
       }
     }
   implicit def coprodWriter[A, R <: Coproduct](
       implicit gen: Generic.Aux[A, R],
-      writer: PBWriter[R]): PBWriter[A] =
+      writer: Lazy[PBWriter[R]]): PBWriter[A] =
     instance { (index: Int, value: A, out: CodedOutputStream) =>
-      writer.writeTo(index, gen.to(value), out)
+      writer.value.writeTo(index, gen.to(value), out)
     }
 }
 

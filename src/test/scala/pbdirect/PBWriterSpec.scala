@@ -149,5 +149,17 @@ class PBWriterSpec extends WordSpecLike with Matchers {
       val instant                                   = Instant.ofEpochMilli(1499411227777L)
       Message(instant).toPB shouldBe Array[Byte](8, -127, -55, -2, -34, -47, 43)
     }
+    "write message with recursive fields to Protobuf" in {
+      sealed trait MyList
+
+      case class MyCons(i: Int, l: MyList) extends MyList
+      case object MyNil                    extends MyList
+
+      val consMessage: MyList = MyCons(1, MyCons(2, MyCons(3, MyNil)))
+      val nilMessage: MyList  = MyNil
+
+      consMessage.toPB shouldBe Array[Byte](8, 1, 18, 8, 8, 2, 18, 4, 8, 3, 18, 0)
+      nilMessage.toPB shouldBe Array[Byte]()
+    }
   }
 }

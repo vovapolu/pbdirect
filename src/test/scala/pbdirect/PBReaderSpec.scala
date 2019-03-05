@@ -144,5 +144,19 @@ class PBReaderSpec extends WordSpecLike with Matchers {
       val instant = Instant.ofEpochMilli(1499411227777L)
       Array[Byte](8, -127, -55, -2, -34, -47, 43).pbTo[Message] shouldBe Message(instant)
     }
+    "read message with recursive fields from Protobuf" in {
+      sealed trait MyList
+
+      case class MyCons(i: Int, l: MyList) extends MyList
+      case object MyNil                    extends MyList
+
+      val consBytes = Array[Byte](8, 1, 18, 8, 8, 2, 18, 4, 8, 3, 18, 0)
+      val nilBytes  = Array[Byte]()
+
+      implicit val reader = PBReader[MyList] // also a bug
+
+      consBytes.pbTo[MyList] shouldBe MyCons(1, MyCons(2, MyCons(3, MyNil)))
+      nilBytes.pbTo[MyList] shouldBe MyNil
+    }
   }
 }
